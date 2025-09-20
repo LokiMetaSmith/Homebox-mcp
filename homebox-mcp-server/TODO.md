@@ -14,7 +14,7 @@ This file lists the remaining endpoints from the Homebox API specification that 
 ## Groups
 - [x] `GET /v1/groups`
 - [x] `PUT /v1/groups`
-- [ ] `POST /v1/groups/invitations`
+- [x] `POST /v1/groups/invitations`
 - [x] `GET /v1/groups/statistics`
 - [x] `GET /v1/groups/statistics/labels`
 - [x] `GET /v1/groups/statistics/locations`
