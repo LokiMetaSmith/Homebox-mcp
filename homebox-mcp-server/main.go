@@ -550,6 +550,14 @@ type UpdateGroupInput struct {
 	Name     string `json:"name,omitempty"`
 	Currency string `json:"currency,omitempty"`
 }
+type CreateGroupInvitationInput struct {
+    Email string `json:"email" jsonschema:"required,format:email"`
+}
+type GroupInvitation struct {
+    ID      string `json:"id"`
+    Email   string `json:"email"`
+    Expires string `json:"expires,omitempty"`
+}
 type GetGroupStatisticsInput struct{}
 type GetLabelStatisticsInput struct{}
 type GetLocationStatisticsInput struct{}
@@ -1843,6 +1851,57 @@ func getCurrency(ctx context.Context, req *mcp.CallToolRequest, input GetCurrenc
 	return nil, result, nil
 }
 
+// createGroupInvitation is the implementation of the "create_group_invitation" tool.
+func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input CreateGroupInvitationInput) (*mcp.CallToolResult, GroupInvitation, error) {
+    homeboxURL := os.Getenv("HOMEBOX_URL")
+    homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+    if homeboxURL == "" || homeboxToken == "" {
+        return nil, GroupInvitation{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+    }
+
+    // Marshal the input to JSON
+    reqBody, err := json.Marshal(input)
+    if err != nil {
+        return nil, GroupInvitation{}, err
+    }
+
+    // Create a new HTTP request to the Homebox API.
+    httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/groups/invitations", homeboxURL), bytes.NewBuffer(reqBody))
+    if err != nil {
+        return nil, GroupInvitation{}, err
+    }
+    httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+    httpReq.Header.Set("Content-Type", "application/json")
+
+    // Execute the request.
+    client := &http.Client{}
+    resp, err := client.Do(httpReq)
+    if err != nil {
+        return nil, GroupInvitation{}, err
+    }
+    defer resp.Body.Close()
+
+    // Read the response body.
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return nil, GroupInvitation{}, err
+    }
+
+    if resp.StatusCode != http.StatusCreated {
+        return nil, GroupInvitation{}, fmt.Errorf("failed to create group invitation, status code: %d, body: %s", resp.StatusCode, string(body))
+    }
+
+    // Unmarshal the JSON response into a GroupInvitation struct.
+    var invitation GroupInvitation
+    if err := json.Unmarshal(body, &invitation); err != nil {
+        return nil, GroupInvitation{}, err
+    }
+
+    // Return the created invitation.
+    return nil, invitation, nil
+}
+
 func main() {
 	// Create a new MCP server.
 	server := mcp.NewServer(&mcp.Implementation{Name: "homebox-mcp-server", Version: "v0.0.1"}, nil)
@@ -1982,6 +2041,12 @@ func main() {
 		Name:        "get_currency",
 		Description: "Gets currency information.",
 	}, getCurrency)
+	
+    // Group tools
+	mcp.AddTool(server, &mcp.Tool{
+	    Name:        "create_group_invitation",
+	    Description: "Creates a new group invitation.",
+	}, createGroupInvitation)
 
 	// Start the server, which will listen for connections on stdin/stdout.
 	log.Println("Starting Homebox MCP server...")
