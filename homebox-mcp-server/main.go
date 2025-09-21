@@ -600,31 +600,21 @@ type CreateQRCodeInput struct {
 type ExportBillOfMaterialsInput struct{}
 
 // Label Maker Inputs
-type GetLabelForAssetInput struct {
+type GetAssetLabelInput struct {
 	ID string `json:"id" jsonschema:"required"`
 }
 
-type GetLabelForAssetOutput struct {
-	FileContent string `json:"file_content"`
-	ContentType string `json:"content_type"`
-}
-
-type GetLabelForItemInput struct {
+type GetItemLabelInput struct {
 	ID string `json:"id" jsonschema:"required"`
 }
 
-type GetLabelForItemOutput struct {
-	FileContent string `json:"file_content"`
-	ContentType string `json:"content_type"`
-}
-
-type GetLabelForLocationInput struct {
+type GetLocationLabelInput struct {
 	ID string `json:"id" jsonschema:"required"`
 }
 
-type GetLabelForLocationOutput struct {
-	FileContent string `json:"file_content"`
-	ContentType string `json:"content_type"`
+// Label Maker Output
+type GetLabelOutput struct {
+	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
 }
 
 
@@ -1930,85 +1920,66 @@ func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input 
     return nil, invitation, nil
 }
 
-// getLabel is a helper function to get a label for a given type and ID.
-func getLabel(labelType string, id string) (string, string, error) {
-	// Get the Homebox API URL and token from environment variables.
+// getLabel is a helper function to get a label from a given path.
+func getLabel(path string) (string, error) {
 	homeboxURL := os.Getenv("HOMEBOX_URL")
 	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
 
 	if homeboxURL == "" || homeboxToken == "" {
-		return "", "", fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+		return "", fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
 	}
 
-	// Create a new HTTP request to the Homebox API.
-	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/labelmaker/%s/%s", homeboxURL, labelType, id), nil)
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/%s", homeboxURL, path), nil)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
 
-	// Execute the request.
 	client := &http.Client{}
 	resp, err := client.Do(httpReq)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 	defer resp.Body.Close()
 
-	// Read the response body.
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("failed to get label, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		return "", "", fmt.Errorf("failed to get label for %s, status code: %d, body: %s", labelType, resp.StatusCode, string(body))
-	}
-
-	// Encode the body to base64
-	encodedBody := base64.StdEncoding.EncodeToString(body)
-
-	// Return the image
-	return encodedBody, resp.Header.Get("Content-Type"), nil
+	return base64.StdEncoding.EncodeToString(body), nil
 }
 
-// getLabelForAsset is the implementation of the "get_label_for_asset" tool.
-func getLabelForAsset(ctx context.Context, req *mcp.CallToolRequest, input GetLabelForAssetInput) (*mcp.CallToolResult, GetLabelForAssetOutput, error) {
-	fileContent, contentType, err := getLabel("assets", input.ID)
+// getAssetLabel is the implementation of the "get_asset_label" tool.
+func getAssetLabel(ctx context.Context, req *mcp.CallToolRequest, input GetAssetLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
+	image, err := getLabel(fmt.Sprintf("labelmaker/asset/%s", input.ID))
 	if err != nil {
-		return nil, GetLabelForAssetOutput{}, err
+		return nil, GetLabelOutput{}, err
 	}
-
-	return nil, GetLabelForAssetOutput{
-		FileContent: fileContent,
-		ContentType: contentType,
-	}, nil
+	return nil, GetLabelOutput{Image: image}, nil
 }
 
-// getLabelForItem is the implementation of the "get_label_for_item" tool.
-func getLabelForItem(ctx context.Context, req *mcp.CallToolRequest, input GetLabelForItemInput) (*mcp.CallToolResult, GetLabelForItemOutput, error) {
-	fileContent, contentType, err := getLabel("item", input.ID)
+// getItemLabel is the implementation of the "get_item_label" tool.
+func getItemLabel(ctx context.Context, req *mcp.CallToolRequest, input GetItemLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
+	image, err := getLabel(fmt.Sprintf("labelmaker/item/%s", input.ID))
 	if err != nil {
-		return nil, GetLabelForItemOutput{}, err
+		return nil, GetLabelOutput{}, err
 	}
-
-	return nil, GetLabelForItemOutput{
-		FileContent: fileContent,
-		ContentType: contentType,
-	}, nil
+	return nil, GetLabelOutput{Image: image}, nil
 }
 
-// getLabelForLocation is the implementation of the "get_label_for_location" tool.
-func getLabelForLocation(ctx context.Context, req *mcp.CallToolRequest, input GetLabelForLocationInput) (*mcp.CallToolResult, GetLabelForLocationOutput, error) {
-	fileContent, contentType, err := getLabel("location", input.ID)
+// getLocationLabel is the implementation of the "get_location_label" tool.
+func getLocationLabel(ctx context.Context, req *mcp.CallToolRequest, input GetLocationLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
+	image, err := getLabel(fmt.Sprintf("labelmaker/location/%s", input.ID))
 	if err != nil {
-		return nil, GetLabelForLocationOutput{}, err
+		return nil, GetLabelOutput{}, err
 	}
-
-	return nil, GetLabelForLocationOutput{
-		FileContent: fileContent,
-		ContentType: contentType,
-	}, nil
+	return nil, GetLabelOutput{Image: image}, nil
 }
 
 func main() {
@@ -2109,6 +2080,20 @@ func main() {
 		Description: "Deletes a label from the Homebox inventory.",
 	}, deleteLabel)
 
+	// Label Maker tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_asset_label",
+		Description: "Gets a label for an asset.",
+	}, getAssetLabel)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_item_label",
+		Description: "Gets a label for an item.",
+	}, getItemLabel)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_location_label",
+		Description: "Gets a label for a location.",
+	}, getLocationLabel)
+
 	// Maintenance tools
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_maintenance_log",
@@ -2156,20 +2141,6 @@ func main() {
 	    Name:        "create_group_invitation",
 	    Description: "Creates a new group invitation.",
 	}, createGroupInvitation)
-
-	// Label Maker tools
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "get_label_for_asset",
-		Description: "Gets a label for an asset as a PNG image.",
-	}, getLabelForAsset)
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "get_label_for_item",
-		Description: "Gets a label for an item as a PNG image.",
-	}, getLabelForItem)
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "get_label_for_location",
-		Description: "Gets a label for a location as a PNG image.",
-	}, getLabelForLocation)
 
 	// Start the server, which will listen for connections on stdin/stdout.
 	log.Println("Starting Homebox MCP server...")
