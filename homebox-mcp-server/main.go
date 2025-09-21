@@ -1957,7 +1957,7 @@ func getLabel(path string) (string, error) {
 
 // getAssetLabel is the implementation of the "get_asset_label" tool.
 func getAssetLabel(ctx context.Context, req *mcp.CallToolRequest, input GetAssetLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
-	image, err := getLabel(fmt.Sprintf("labelmaker/asset/%s", input.ID))
+	image, err := getLabel(fmt.Sprintf("labelmaker/assets/%s", input.ID))
 	if err != nil {
 		return nil, GetLabelOutput{}, err
 	}
