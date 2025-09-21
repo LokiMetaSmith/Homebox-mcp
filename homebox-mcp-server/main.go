@@ -557,6 +557,24 @@ type GroupInvitation struct {
     Email   string `json:"email"`
     Expires string `json:"expires,omitempty"`
 }
+
+// Label Maker Inputs
+type GetAssetLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+type GetItemLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+type GetLocationLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+// Label Maker Output
+type GetLabelOutput struct {
+	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
+}
 type GetGroupStatisticsInput struct{}
 type GetLabelStatisticsInput struct{}
 type GetLocationStatisticsInput struct{}
@@ -1899,24 +1917,6 @@ func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input 
 
     // Return the created invitation.
     return nil, invitation, nil
-}
-
-// Label Maker Inputs
-type GetAssetLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-type GetItemLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-type GetLocationLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-// Label Maker Output
-type GetLabelOutput struct {
-	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
 }
 
 // getLabelImage is a helper function to get a label from a given path.
