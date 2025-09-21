@@ -11,7 +11,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
@@ -1920,8 +1919,8 @@ func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input 
     return nil, invitation, nil
 }
 
-// getLabel is a helper function to get a label from a given path.
-func getLabel(path string) (string, error) {
+// getLabelImage is a helper function to get a label from a given path.
+func getLabelImage(path string) (string, error) {
 	homeboxURL := os.Getenv("HOMEBOX_URL")
 	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
 
@@ -1957,7 +1956,7 @@ func getLabel(path string) (string, error) {
 
 // getAssetLabel is the implementation of the "get_asset_label" tool.
 func getAssetLabel(ctx context.Context, req *mcp.CallToolRequest, input GetAssetLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
-	image, err := getLabel(fmt.Sprintf("labelmaker/assets/%s", input.ID))
+	image, err := getLabelImage(fmt.Sprintf("labelmaker/assets/%s", input.ID))
 	if err != nil {
 		return nil, GetLabelOutput{}, err
 	}
@@ -1966,7 +1965,7 @@ func getAssetLabel(ctx context.Context, req *mcp.CallToolRequest, input GetAsset
 
 // getItemLabel is the implementation of the "get_item_label" tool.
 func getItemLabel(ctx context.Context, req *mcp.CallToolRequest, input GetItemLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
-	image, err := getLabel(fmt.Sprintf("labelmaker/item/%s", input.ID))
+	image, err := getLabelImage(fmt.Sprintf("labelmaker/item/%s", input.ID))
 	if err != nil {
 		return nil, GetLabelOutput{}, err
 	}
@@ -1975,7 +1974,7 @@ func getItemLabel(ctx context.Context, req *mcp.CallToolRequest, input GetItemLa
 
 // getLocationLabel is the implementation of the "get_location_label" tool.
 func getLocationLabel(ctx context.Context, req *mcp.CallToolRequest, input GetLocationLabelInput) (*mcp.CallToolResult, GetLabelOutput, error) {
-	image, err := getLabel(fmt.Sprintf("labelmaker/location/%s", input.ID))
+	image, err := getLabelImage(fmt.Sprintf("labelmaker/location/%s", input.ID))
 	if err != nil {
 		return nil, GetLabelOutput{}, err
 	}
