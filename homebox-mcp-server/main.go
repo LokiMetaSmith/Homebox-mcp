@@ -598,24 +598,6 @@ type CreateQRCodeInput struct {
 // Reporting Inputs
 type ExportBillOfMaterialsInput struct{}
 
-// Label Maker Inputs
-type GetAssetLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-type GetItemLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-type GetLocationLabelInput struct {
-	ID string `json:"id" jsonschema:"required"`
-}
-
-// Label Maker Output
-type GetLabelOutput struct {
-	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
-}
-
 
 // getItems is the implementation of the "get_items" tool.
 func getItems(ctx context.Context, req *mcp.CallToolRequest, input GetItemsInput) (*mcp.CallToolResult, GetItemsOutput, error) {
@@ -1917,6 +1899,24 @@ func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input 
 
     // Return the created invitation.
     return nil, invitation, nil
+}
+
+// Label Maker Inputs
+type GetAssetLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+type GetItemLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+type GetLocationLabelInput struct {
+	ID string `json:"id" jsonschema:"required"`
+}
+
+// Label Maker Output
+type GetLabelOutput struct {
+	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
 }
 
 // getLabelImage is a helper function to get a label from a given path.
