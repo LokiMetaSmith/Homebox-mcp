@@ -21,9 +21,9 @@ This file lists the remaining endpoints from the Homebox API specification that 
 - [x] `GET /v1/groups/statistics/purchase-price`
 
 ## Label Maker
-- [x] `GET /v1/labelmaker/assets/{id}` (returns image)
-- [x] `GET /v1/labelmaker/item/{id}` (returns image)
-- [x] `GET /v1/labelmaker/location/{id}` (returns image)
+- [ ] `GET /v1/labelmaker/assets/{id}` (returns image)
+- [ ] `GET /v1/labelmaker/item/{id}` (returns image)
+- [ ] `GET /v1/labelmaker/location/{id}` (returns image)
 
 ## Maintenance
 - [x] `PUT /v1/maintenance/{id}`
