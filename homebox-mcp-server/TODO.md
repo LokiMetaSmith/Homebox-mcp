@@ -46,8 +46,8 @@ This file lists the remaining endpoints from the Homebox API specification that 
 - [x] `GET /v1/reporting/bill-of-materials`
 
 ## Users
-- [ ] `PUT /v1/users/change-password`
-- [ ] `GET /v1/users/self`
-- [ ] `PUT /v1/users/self`
-- [ ] `DELETE /v1/users/self`
-- [ ] `POST /v1/users/register`
+- [x] `PUT /v1/users/change-password`
+- [x] `GET /v1/users/self`
+- [x] `PUT /v1/users/self`
+- [x] `DELETE /v1/users/self`
+- [x] `POST /v1/users/register`
