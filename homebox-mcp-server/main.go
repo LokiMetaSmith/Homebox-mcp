@@ -1868,6 +1868,129 @@ func getCurrency(ctx context.Context, req *mcp.CallToolRequest, input GetCurrenc
 	return nil, result, nil
 }
 
+// getGroup is the implementation of the "get_group" tool.
+func getGroup(ctx context.Context, req *mcp.CallToolRequest, input GetGroupInput) (*mcp.CallToolResult, Group, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, Group{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/groups", homeboxURL), nil)
+	if err != nil {
+		return nil, Group{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, Group{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, Group{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, Group{}, fmt.Errorf("failed to get group, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var group Group
+	if err := json.Unmarshal(body, &group); err != nil {
+		return nil, Group{}, err
+	}
+
+	return nil, group, nil
+}
+
+// updateGroup is the implementation of the "update_group" tool.
+func updateGroup(ctx context.Context, req *mcp.CallToolRequest, input UpdateGroupInput) (*mcp.CallToolResult, Group, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, Group{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, Group{}, err
+	}
+
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/groups", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, Group{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, Group{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, Group{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, Group{}, fmt.Errorf("failed to update group, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var group Group
+	if err := json.Unmarshal(body, &group); err != nil {
+		return nil, Group{}, err
+	}
+
+	return nil, group, nil
+}
+
+// getGroupStatistics is the implementation of the "get_group_statistics" tool.
+func getGroupStatistics(ctx context.Context, req *mcp.CallToolRequest, input GetGroupStatisticsInput) (*mcp.CallToolResult, GroupStatistics, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, GroupStatistics{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/groups/statistics", homeboxURL), nil)
+	if err != nil {
+		return nil, GroupStatistics{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, GroupStatistics{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, GroupStatistics{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, GroupStatistics{}, fmt.Errorf("failed to get group statistics, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var stats GroupStatistics
+	if err := json.Unmarshal(body, &stats); err != nil {
+		return nil, GroupStatistics{}, err
+	}
+
+	return nil, stats, nil
+}
+
 // createGroupInvitation is the implementation of the "create_group_invitation" tool.
 func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input CreateGroupInvitationInput) (*mcp.CallToolResult, GroupInvitation, error) {
     homeboxURL := os.Getenv("HOMEBOX_URL")
@@ -2111,6 +2234,18 @@ func main() {
 	}, getCurrency)
 	
     // Group tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_group",
+		Description: "Retrieves the current group information.",
+	}, getGroup)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "update_group",
+		Description: "Updates the current group information.",
+	}, updateGroup)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_group_statistics",
+		Description: "Retrieves statistics for the current group.",
+	}, getGroupStatistics)
 	mcp.AddTool(server, &mcp.Tool{
 	    Name:        "create_group_invitation",
 	    Description: "Creates a new group invitation.",
