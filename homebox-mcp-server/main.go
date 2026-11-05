@@ -567,6 +567,9 @@ type GetPurchasePriceStatisticsInput struct {
 
 // Notifier Inputs
 type GetNotifiersInput struct{}
+type GetNotifiersOutput struct {
+	Notifiers []NotifierOut `json:"notifiers"`
+}
 type CreateNotifierInput struct {
 	Name     string `json:"name" jsonschema:"required"`
 	URL      string `json:"url" jsonschema:"required"`
@@ -581,9 +584,11 @@ type UpdateNotifierInput struct {
 type DeleteNotifierInput struct {
 	ID string `json:"id" jsonschema:"required"`
 }
+type DeleteNotifierOutput struct{}
 type TestNotifierInput struct {
 	URL string `json:"url" jsonschema:"required"`
 }
+type TestNotifierOutput struct{}
 
 // Product Inputs
 type SearchFromBarcodeInput struct {
@@ -2435,6 +2440,14 @@ func main() {
 		Name:        "create_maintenance_entry",
 		Description: "Creates a new maintenance entry for an item.",
 	}, createMaintenanceEntry)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "update_maintenance_entry",
+		Description: "Updates an existing maintenance entry.",
+	}, updateMaintenanceEntry)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "delete_maintenance_entry",
+		Description: "Deletes a maintenance entry.",
+	}, deleteMaintenanceEntry)
 
 	// Action tools
 	mcp.AddTool(server, &mcp.Tool{
@@ -2522,9 +2535,265 @@ mcp.AddTool(server, &mcp.Tool{
 		Description: "Registers a new user in the Homebox instance.",
 	}, registerUser)
 
+	// Notifier tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_notifiers",
+		Description: "Retrieves all notifiers.",
+	}, getNotifiers)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "create_notifier",
+		Description: "Creates a new notifier.",
+	}, createNotifier)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "update_notifier",
+		Description: "Updates an existing notifier.",
+	}, updateNotifier)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "delete_notifier",
+		Description: "Deletes a notifier.",
+	}, deleteNotifier)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "test_notifier",
+		Description: "Tests a notifier.",
+	}, testNotifier)
+
 	// Start the server, which will listen for connections on stdin/stdout.
 	log.Println("Starting Homebox MCP server...")
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
 		log.Fatalf("MCP server error: %v", err)
 	}
+}
+// getNotifiers is the implementation of the "get_notifiers" tool.
+func getNotifiers(ctx context.Context, req *mcp.CallToolRequest, input GetNotifiersInput) (*mcp.CallToolResult, GetNotifiersOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, GetNotifiersOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/notifiers", homeboxURL), nil)
+	if err != nil {
+		return nil, GetNotifiersOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, GetNotifiersOutput{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, GetNotifiersOutput{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, GetNotifiersOutput{}, fmt.Errorf("failed to get notifiers, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	var result []NotifierOut
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, GetNotifiersOutput{}, err
+	}
+	return nil, GetNotifiersOutput{Notifiers: result}, nil
+}
+
+// createNotifier is the implementation of the "create_notifier" tool.
+func createNotifier(ctx context.Context, req *mcp.CallToolRequest, input CreateNotifierInput) (*mcp.CallToolResult, NotifierOut, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, NotifierOut{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/notifiers", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return nil, NotifierOut{}, fmt.Errorf("failed to create notifier, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	var result NotifierOut
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, NotifierOut{}, err
+	}
+	return nil, result, nil
+}
+
+// updateNotifier is the implementation of the "update_notifier" tool.
+func updateNotifier(ctx context.Context, req *mcp.CallToolRequest, input UpdateNotifierInput) (*mcp.CallToolResult, NotifierOut, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, NotifierOut{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/notifiers/%s", homeboxURL, input.ID), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, NotifierOut{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, NotifierOut{}, fmt.Errorf("failed to update notifier, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	var result NotifierOut
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, NotifierOut{}, err
+	}
+	return nil, result, nil
+}
+
+// deleteNotifier is the implementation of the "delete_notifier" tool.
+func deleteNotifier(ctx context.Context, req *mcp.CallToolRequest, input DeleteNotifierInput) (*mcp.CallToolResult, DeleteNotifierOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, DeleteNotifierOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+	httpReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/notifiers/%s", homeboxURL, input.ID), nil)
+	if err != nil {
+		return nil, DeleteNotifierOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, DeleteNotifierOutput{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, DeleteNotifierOutput{}, fmt.Errorf("failed to delete notifier, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	return nil, DeleteNotifierOutput{}, nil
+}
+
+// testNotifier is the implementation of the "test_notifier" tool.
+func testNotifier(ctx context.Context, req *mcp.CallToolRequest, input TestNotifierInput) (*mcp.CallToolResult, TestNotifierOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, TestNotifierOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, TestNotifierOutput{}, err
+	}
+	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/notifiers/test", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, TestNotifierOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, TestNotifierOutput{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, TestNotifierOutput{}, fmt.Errorf("failed to test notifier, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	return nil, TestNotifierOutput{}, nil
+}
+// updateMaintenanceEntry is the implementation of the "update_maintenance_entry" tool.
+func updateMaintenanceEntry(ctx context.Context, req *mcp.CallToolRequest, input UpdateMaintenanceEntryInput) (*mcp.CallToolResult, MaintenanceEntry, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, MaintenanceEntry{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, MaintenanceEntry{}, err
+	}
+
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/maintenance/%s", homeboxURL, input.ID), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, MaintenanceEntry{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, MaintenanceEntry{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, MaintenanceEntry{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, MaintenanceEntry{}, fmt.Errorf("failed to update maintenance entry, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var entry MaintenanceEntry
+	if err := json.Unmarshal(body, &entry); err != nil {
+		return nil, MaintenanceEntry{}, err
+	}
+
+	return nil, entry, nil
+}
+
+// deleteMaintenanceEntry is the implementation of the "delete_maintenance_entry" tool.
+func deleteMaintenanceEntry(ctx context.Context, req *mcp.CallToolRequest, input DeleteMaintenanceEntryInput) (*mcp.CallToolResult, DeleteMaintenanceEntryOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, DeleteMaintenanceEntryOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/maintenance/%s", homeboxURL, input.ID), nil)
+	if err != nil {
+		return nil, DeleteMaintenanceEntryOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, DeleteMaintenanceEntryOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, DeleteMaintenanceEntryOutput{}, fmt.Errorf("failed to delete maintenance entry, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	return nil, DeleteMaintenanceEntryOutput{}, nil
 }
