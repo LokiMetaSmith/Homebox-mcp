@@ -590,6 +590,42 @@ type SearchFromBarcodeInput struct {
 	Data string `json:"data" jsonschema:"required"`
 }
 
+// Users module Models
+type UserOut struct {
+	ID        string `json:"id"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
+	Username  string `json:"username"`
+	IsAdmin   bool   `json:"isAdmin"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+type GetUserSelfInput struct{}
+
+type UpdateUserSelfInput struct {
+	Email    string `json:"email,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Username string `json:"username,omitempty"`
+}
+
+type DeleteUserSelfInput struct{}
+type DeleteUserSelfOutput struct{}
+
+type ChangePasswordInput struct {
+	CurrentPassword string `json:"currentPassword" jsonschema:"required"`
+	NewPassword     string `json:"newPassword" jsonschema:"required"`
+}
+
+type ChangePasswordOutput struct{}
+
+type RegisterUserInput struct {
+	Email    string `json:"email" jsonschema:"required"`
+	Name     string `json:"name" jsonschema:"required"`
+	Password string `json:"password" jsonschema:"required"`
+	Username string `json:"username" jsonschema:"required"`
+}
+
 // QR Code Inputs
 type CreateQRCodeInput struct {
 	Data string `json:"data" jsonschema:"required"`
@@ -2093,6 +2129,205 @@ func getLocationLabel(ctx context.Context, req *mcp.CallToolRequest, input GetLo
 	return getLabelImage(ctx, fmt.Sprintf("labelmaker/location/%s", input.ID))
 }
 
+// getUserSelf is the implementation of the "get_user_self" tool.
+func getUserSelf(ctx context.Context, req *mcp.CallToolRequest, input GetUserSelfInput) (*mcp.CallToolResult, UserOut, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, UserOut{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/users/self", homeboxURL), nil)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, UserOut{}, fmt.Errorf("failed to get user self, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var user UserOut
+	if err := json.Unmarshal(body, &user); err != nil {
+		return nil, UserOut{}, err
+	}
+
+	return nil, user, nil
+}
+
+// updateUserSelf is the implementation of the "update_user_self" tool.
+func updateUserSelf(ctx context.Context, req *mcp.CallToolRequest, input UpdateUserSelfInput) (*mcp.CallToolResult, UserOut, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, UserOut{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/users/self", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, UserOut{}, fmt.Errorf("failed to update user self, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var user UserOut
+	if err := json.Unmarshal(body, &user); err != nil {
+		return nil, UserOut{}, err
+	}
+
+	return nil, user, nil
+}
+
+// changePassword is the implementation of the "change_password" tool.
+func changePassword(ctx context.Context, req *mcp.CallToolRequest, input ChangePasswordInput) (*mcp.CallToolResult, ChangePasswordOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, ChangePasswordOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, ChangePasswordOutput{}, err
+	}
+
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/users/change-password", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, ChangePasswordOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, ChangePasswordOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, ChangePasswordOutput{}, fmt.Errorf("failed to change password, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	return nil, ChangePasswordOutput{}, nil
+}
+
+// deleteUserSelf is the implementation of the "delete_user_self" tool.
+func deleteUserSelf(ctx context.Context, req *mcp.CallToolRequest, input DeleteUserSelfInput) (*mcp.CallToolResult, DeleteUserSelfOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, DeleteUserSelfOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/users/self", homeboxURL), nil)
+	if err != nil {
+		return nil, DeleteUserSelfOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, DeleteUserSelfOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, DeleteUserSelfOutput{}, fmt.Errorf("failed to delete user self, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	return nil, DeleteUserSelfOutput{}, nil
+}
+
+// registerUser is the implementation of the "register_user" tool.
+func registerUser(ctx context.Context, req *mcp.CallToolRequest, input RegisterUserInput) (*mcp.CallToolResult, UserOut, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" {
+		return nil, UserOut{}, fmt.Errorf("HOMEBOX_URL environment variable must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+
+	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/users/register", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	// For registration we might not need a token depending on if it's admin-only or open.
+	// But attaching it doesn't hurt if we have it.
+	if homeboxToken != "" {
+		httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	}
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, UserOut{}, err
+	}
+
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
+		return nil, UserOut{}, fmt.Errorf("failed to register user, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var user UserOut
+	if err := json.Unmarshal(body, &user); err != nil {
+		return nil, UserOut{}, err
+	}
+
+	return nil, user, nil
+}
+
 func main() {
 	// Create a new MCP server.
 	server := mcp.NewServer(&mcp.Implementation{Name: "homebox-mcp-server", Version: "v0.0.1"}, nil)
@@ -2264,6 +2499,28 @@ mcp.AddTool(server, &mcp.Tool{
 	Name:        "get_location_label",
 	Description: "Generates a label for a location.",
 }, getLocationLabel)
+
+	// Users tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_user_self",
+		Description: "Retrieves the currently authenticated user.",
+	}, getUserSelf)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "update_user_self",
+		Description: "Updates the currently authenticated user.",
+	}, updateUserSelf)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "change_password",
+		Description: "Changes the password for the currently authenticated user.",
+	}, changePassword)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "delete_user_self",
+		Description: "Deletes the currently authenticated user.",
+	}, deleteUserSelf)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "register_user",
+		Description: "Registers a new user in the Homebox instance.",
+	}, registerUser)
 
 	// Start the server, which will listen for connections on stdin/stdout.
 	log.Println("Starting Homebox MCP server...")
