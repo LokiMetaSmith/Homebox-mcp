@@ -210,3 +210,128 @@ func TestRegisterUser(t *testing.T) {
 	assert.Equal(t, "u2", output.ID)
 	assert.Equal(t, "reg@example.com", output.Email)
 }
+
+func TestGetNotifiers(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/notifiers", r.URL.Path)
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[{"id":"1","name":"Test Notifier","url":"http://test.com","isActive":true}]`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, output, err := getNotifiers(context.Background(), nil, GetNotifiersInput{})
+	assert.NoError(t, err)
+	assert.Len(t, output.Notifiers, 1)
+	assert.Equal(t, "1", output.Notifiers[0].ID)
+	assert.Equal(t, "Test Notifier", output.Notifiers[0].Name)
+}
+
+func TestCreateNotifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/notifiers", r.URL.Path)
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id":"2","name":"New Notifier","url":"http://new.com","isActive":false}`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, output, err := createNotifier(context.Background(), nil, CreateNotifierInput{Name: "New Notifier", URL: "http://new.com", IsActive: false})
+	assert.NoError(t, err)
+	assert.Equal(t, "2", output.ID)
+	assert.Equal(t, "New Notifier", output.Name)
+}
+
+func TestUpdateNotifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/notifiers/2", r.URL.Path)
+		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id":"2","name":"Updated Notifier","url":"http://updated.com","isActive":true}`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, output, err := updateNotifier(context.Background(), nil, UpdateNotifierInput{ID: "2", Name: "Updated Notifier", URL: "http://updated.com", IsActive: true})
+	assert.NoError(t, err)
+	assert.Equal(t, "2", output.ID)
+	assert.Equal(t, "Updated Notifier", output.Name)
+}
+
+func TestDeleteNotifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/notifiers/2", r.URL.Path)
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, _, err := deleteNotifier(context.Background(), nil, DeleteNotifierInput{ID: "2"})
+	assert.NoError(t, err)
+}
+
+func TestTestNotifier(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/notifiers/test", r.URL.Path)
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, _, err := testNotifier(context.Background(), nil, TestNotifierInput{URL: "http://test.com"})
+	assert.NoError(t, err)
+}
+
+func TestUpdateMaintenanceEntry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/maintenance/3", r.URL.Path)
+		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id":"3","name":"Updated Maintenance"}`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, output, err := updateMaintenanceEntry(context.Background(), nil, UpdateMaintenanceEntryInput{ID: "3", Name: "Updated Maintenance"})
+	assert.NoError(t, err)
+	assert.Equal(t, "3", output.ID)
+	assert.Equal(t, "Updated Maintenance", output.Name)
+}
+
+func TestDeleteMaintenanceEntry(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/maintenance/3", r.URL.Path)
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, _, err := deleteMaintenanceEntry(context.Background(), nil, DeleteMaintenanceEntryInput{ID: "3"})
+	assert.NoError(t, err)
+}
