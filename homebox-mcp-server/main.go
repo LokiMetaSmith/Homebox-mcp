@@ -10,6 +10,7 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -595,6 +596,26 @@ type SearchFromBarcodeInput struct {
 	Data string `json:"data" jsonschema:"required"`
 }
 
+type SearchFromBarcodeOutput struct {
+	Items []ItemSummary `json:"items"`
+}
+
+// QR Code Inputs
+type CreateQRCodeInput struct {
+	Data string `json:"data" jsonschema:"required"`
+}
+
+type CreateQRCodeOutput struct {
+	Image string `json:"image"`
+}
+
+// Reporting Inputs
+type ExportBillOfMaterialsInput struct{}
+
+type ExportBillOfMaterialsOutput struct {
+	Data string `json:"data"`
+}
+
 // Users module Models
 type UserOut struct {
 	ID        string `json:"id"`
@@ -630,14 +651,6 @@ type RegisterUserInput struct {
 	Password string `json:"password" jsonschema:"required"`
 	Username string `json:"username" jsonschema:"required"`
 }
-
-// QR Code Inputs
-type CreateQRCodeInput struct {
-	Data string `json:"data" jsonschema:"required"`
-}
-
-// Reporting Inputs
-type ExportBillOfMaterialsInput struct{}
 
 // Label Maker Inputs
 type GetAssetLabelInput struct {
@@ -2333,6 +2346,114 @@ func registerUser(ctx context.Context, req *mcp.CallToolRequest, input RegisterU
 	return nil, user, nil
 }
 
+// searchFromBarcode is the implementation of the "search_from_barcode" tool.
+func searchFromBarcode(ctx context.Context, req *mcp.CallToolRequest, input SearchFromBarcodeInput) (*mcp.CallToolResult, SearchFromBarcodeOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, SearchFromBarcodeOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/products/search-from-barcode?data=%s", homeboxURL, url.QueryEscape(input.Data)), nil)
+	if err != nil {
+		return nil, SearchFromBarcodeOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, SearchFromBarcodeOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, SearchFromBarcodeOutput{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, SearchFromBarcodeOutput{}, fmt.Errorf("failed to search from barcode, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	var items []ItemSummary
+	if err := json.Unmarshal(body, &items); err != nil {
+		return nil, SearchFromBarcodeOutput{}, err
+	}
+
+	return nil, SearchFromBarcodeOutput{Items: items}, nil
+}
+
+// createQRCode is the implementation of the "create_qrcode" tool.
+func createQRCode(ctx context.Context, req *mcp.CallToolRequest, input CreateQRCodeInput) (*mcp.CallToolResult, CreateQRCodeOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, CreateQRCodeOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/qrcode?data=%s", homeboxURL, url.QueryEscape(input.Data)), nil)
+	if err != nil {
+		return nil, CreateQRCodeOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, CreateQRCodeOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, CreateQRCodeOutput{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, CreateQRCodeOutput{}, fmt.Errorf("failed to get qrcode, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	base64Image := base64.StdEncoding.EncodeToString(body)
+	return nil, CreateQRCodeOutput{Image: base64Image}, nil
+}
+
+// exportBillOfMaterials is the implementation of the "export_bill_of_materials" tool.
+func exportBillOfMaterials(ctx context.Context, req *mcp.CallToolRequest, input ExportBillOfMaterialsInput) (*mcp.CallToolResult, ExportBillOfMaterialsOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, ExportBillOfMaterialsOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/reporting/bill-of-materials", homeboxURL), nil)
+	if err != nil {
+		return nil, ExportBillOfMaterialsOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, ExportBillOfMaterialsOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, ExportBillOfMaterialsOutput{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, ExportBillOfMaterialsOutput{}, fmt.Errorf("failed to export bill of materials, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+
+	return nil, ExportBillOfMaterialsOutput{Data: string(body)}, nil
+}
+
 func main() {
 	// Create a new MCP server.
 	server := mcp.NewServer(&mcp.Implementation{Name: "homebox-mcp-server", Version: "v0.0.1"}, nil)
@@ -2556,6 +2677,22 @@ mcp.AddTool(server, &mcp.Tool{
 		Name:        "test_notifier",
 		Description: "Tests a notifier.",
 	}, testNotifier)
+
+	// Additional tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "search_from_barcode",
+		Description: "Search products from a barcode.",
+	}, searchFromBarcode)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_qrcode",
+		Description: "Returns a QR Code image based on provided data.",
+	}, createQRCode)
+
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "export_bill_of_materials",
+		Description: "Exports bill of materials reporting.",
+	}, exportBillOfMaterials)
 
 	// Start the server, which will listen for connections on stdin/stdout.
 	log.Println("Starting Homebox MCP server...")

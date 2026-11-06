@@ -335,3 +335,84 @@ func TestDeleteMaintenanceEntry(t *testing.T) {
 	_, _, err := deleteMaintenanceEntry(context.Background(), nil, DeleteMaintenanceEntryInput{ID: "3"})
 	assert.NoError(t, err)
 }
+
+func TestSearchFromBarcode(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/products/search-from-barcode" && r.URL.Query().Get("data") == "12345" && r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`[{"id":"1","name":"Product 1"}]`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := SearchFromBarcodeInput{
+		Data: "12345",
+	}
+
+	_, output, err := searchFromBarcode(context.Background(), nil, input)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(output.Items) != 1 || output.Items[0].ID != "1" {
+		t.Errorf("Expected 1 product with ID 1, got %+v", output.Items)
+	}
+}
+
+func TestCreateQRCode(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/qrcode" && r.URL.Query().Get("data") == "test-data" && r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("image-data"))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := CreateQRCodeInput{
+		Data: "test-data",
+	}
+
+	_, output, err := createQRCode(context.Background(), nil, input)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expectedImage := base64.StdEncoding.EncodeToString([]byte("image-data"))
+	if output.Image != expectedImage {
+		t.Errorf("Expected %s, got %s", expectedImage, output.Image)
+	}
+}
+
+func TestExportBillOfMaterials(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/v1/reporting/bill-of-materials" && r.Method == "GET" {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("csv-data"))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	_, output, err := exportBillOfMaterials(context.Background(), nil, ExportBillOfMaterialsInput{})
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if output.Data != "csv-data" {
+		t.Errorf("Expected csv-data, got %s", output.Data)
+	}
+}
