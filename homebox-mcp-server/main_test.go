@@ -416,3 +416,97 @@ func TestExportBillOfMaterials(t *testing.T) {
 		t.Errorf("Expected csv-data, got %s", output.Data)
 	}
 }
+
+func TestCreateItemAttachment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/items/item123/attachments", r.URL.Path)
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"id":"att123","title":"test.png"}`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := CreateItemAttachmentInput{
+		ItemID:      "item123",
+		FileContent: base64.StdEncoding.EncodeToString([]byte("dummy content")),
+		FileName:    "test.png",
+	}
+
+	_, output, err := createItemAttachment(context.Background(), nil, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "att123", output.ID)
+	assert.Equal(t, "test.png", output.Title)
+}
+
+func TestGetItemAttachment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/items/item123/attachments/att123", r.URL.Path)
+		assert.Equal(t, http.MethodGet, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("dummy content"))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := GetItemAttachmentInput{
+		ItemID:       "item123",
+		AttachmentID: "att123",
+	}
+
+	_, output, err := getItemAttachment(context.Background(), nil, input)
+	assert.NoError(t, err)
+	assert.Equal(t, base64.StdEncoding.EncodeToString([]byte("dummy content")), output.FileContent)
+}
+
+func TestUpdateItemAttachment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/items/item123/attachments/att123", r.URL.Path)
+		assert.Equal(t, http.MethodPut, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"id":"att123","title":"updated.png"}`))
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := UpdateItemAttachmentInput{
+		ItemID:       "item123",
+		AttachmentID: "att123",
+		Title:        "updated.png",
+	}
+
+	_, output, err := updateItemAttachment(context.Background(), nil, input)
+	assert.NoError(t, err)
+	assert.Equal(t, "att123", output.ID)
+	assert.Equal(t, "updated.png", output.Title)
+}
+
+func TestDeleteItemAttachment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "/api/v1/items/item123/attachments/att123", r.URL.Path)
+		assert.Equal(t, http.MethodDelete, r.Method)
+		assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	defer server.Close()
+
+	t.Setenv("HOMEBOX_URL", server.URL)
+	t.Setenv("HOMEBOX_TOKEN", "test-token")
+
+	input := DeleteItemAttachmentInput{
+		ItemID:       "item123",
+		AttachmentID: "att123",
+	}
+
+	_, _, err := deleteItemAttachment(context.Background(), nil, input)
+	assert.NoError(t, err)
+}
