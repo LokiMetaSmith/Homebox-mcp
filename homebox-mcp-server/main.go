@@ -43,21 +43,21 @@ type LocationSummary struct {
 }
 
 type ItemSummary struct {
-	ID            string            `json:"id"`
-	Name          string            `json:"name"`
-	Description   string            `json:"description,omitempty"`
-	Archived      bool              `json:"archived"`
-	AssetID       string            `json:"assetId"`
-	CreatedAt     string            `json:"createdAt"`
-	ImageID       string            `json:"imageId,omitempty"`
-	Insured       bool              `json:"insured"`
-	Labels        []LabelSummary    `json:"labels"`
-	Location      *LocationSummary  `json:"location,omitempty"`
-	PurchasePrice float64           `json:"purchasePrice"`
-	Quantity      int               `json:"quantity"`
-	SoldTime      string            `json:"soldTime,omitempty"`
-	ThumbnailID   string            `json:"thumbnailId,omitempty"`
-	UpdatedAt     string            `json:"updatedAt"`
+	ID            string           `json:"id"`
+	Name          string           `json:"name"`
+	Description   string           `json:"description,omitempty"`
+	Archived      bool             `json:"archived"`
+	AssetID       string           `json:"assetId"`
+	CreatedAt     string           `json:"createdAt"`
+	ImageID       string           `json:"imageId,omitempty"`
+	Insured       bool             `json:"insured"`
+	Labels        []LabelSummary   `json:"labels"`
+	Location      *LocationSummary `json:"location,omitempty"`
+	PurchasePrice float64          `json:"purchasePrice"`
+	Quantity      int              `json:"quantity"`
+	SoldTime      string           `json:"soldTime,omitempty"`
+	ThumbnailID   string           `json:"thumbnailId,omitempty"`
+	UpdatedAt     string           `json:"updatedAt"`
 }
 
 type ItemAttachment struct {
@@ -82,37 +82,37 @@ type ItemField struct {
 }
 
 type ItemOut struct {
-	ID                      string            `json:"id"`
-	Archived                bool              `json:"archived"`
-	AssetID                 string            `json:"assetId"`
-	Attachments             []ItemAttachment  `json:"attachments"`
-	CreatedAt               string            `json:"createdAt"`
-	Description             string            `json:"description"`
-	Fields                  []ItemField       `json:"fields"`
-	ImageID                 string            `json:"imageId,omitempty"`
-	Insured                 bool              `json:"insured"`
-	Labels                  []LabelSummary    `json:"labels"`
-	LifetimeWarranty        bool              `json:"lifetimeWarranty"`
-	Location                *LocationSummary  `json:"location,omitempty"`
-	Manufacturer            string            `json:"manufacturer"`
-	ModelNumber             string            `json:"modelNumber"`
-	Name                    string            `json:"name"`
-	Notes                   string            `json:"notes"`
-	Parent                  *ItemSummary      `json:"parent,omitempty"`
-	PurchaseFrom            string            `json:"purchaseFrom"`
-	PurchasePrice           float64           `json:"purchasePrice"`
-	PurchaseTime            string            `json:"purchaseTime"`
-	Quantity                int               `json:"quantity"`
-	SerialNumber            string            `json:"serialNumber"`
-	SoldNotes               string            `json:"soldNotes"`
-	SoldPrice               float64           `json:"soldPrice"`
-	SoldTime                string            `json:"soldTime"`
-	SoldTo                  string            `json:"soldTo"`
-	SyncChildItemsLocations bool              `json:"syncChildItemsLocations"`
-	ThumbnailID             string            `json:"thumbnailId,omitempty"`
-	UpdatedAt               string            `json:"updatedAt"`
-	WarrantyDetails         string            `json:"warrantyDetails"`
-	WarrantyExpires         string            `json:"warrantyExpires"`
+	ID                      string           `json:"id"`
+	Archived                bool             `json:"archived"`
+	AssetID                 string           `json:"assetId"`
+	Attachments             []ItemAttachment `json:"attachments"`
+	CreatedAt               string           `json:"createdAt"`
+	Description             string           `json:"description"`
+	Fields                  []ItemField      `json:"fields"`
+	ImageID                 string           `json:"imageId,omitempty"`
+	Insured                 bool             `json:"insured"`
+	Labels                  []LabelSummary   `json:"labels"`
+	LifetimeWarranty        bool             `json:"lifetimeWarranty"`
+	Location                *LocationSummary `json:"location,omitempty"`
+	Manufacturer            string           `json:"manufacturer"`
+	ModelNumber             string           `json:"modelNumber"`
+	Name                    string           `json:"name"`
+	Notes                   string           `json:"notes"`
+	Parent                  *ItemSummary     `json:"parent,omitempty"`
+	PurchaseFrom            string           `json:"purchaseFrom"`
+	PurchasePrice           float64          `json:"purchasePrice"`
+	PurchaseTime            string           `json:"purchaseTime"`
+	Quantity                int              `json:"quantity"`
+	SerialNumber            string           `json:"serialNumber"`
+	SoldNotes               string           `json:"soldNotes"`
+	SoldPrice               float64          `json:"soldPrice"`
+	SoldTime                string           `json:"soldTime"`
+	SoldTo                  string           `json:"soldTo"`
+	SyncChildItemsLocations bool             `json:"syncChildItemsLocations"`
+	ThumbnailID             string           `json:"thumbnailId,omitempty"`
+	UpdatedAt               string           `json:"updatedAt"`
+	WarrantyDetails         string           `json:"warrantyDetails"`
+	WarrantyExpires         string           `json:"warrantyExpires"`
 }
 
 type LocationOutCount struct {
@@ -264,14 +264,14 @@ type NotifierOut struct {
 }
 
 type BarcodeProduct struct {
-	Barcode         string        `json:"barcode"`
-	ImageBase64     string        `json:"imageBase64"`
-	ImageURL        string        `json:"imageURL"`
-	Item            CreateItemInput `json:"item"`
-	Manufacturer    string        `json:"manufacturer"`
-	ModelNumber     string        `json:"modelNumber"`
-	Notes           string        `json:"notes"`
-	SearchEngineName string        `json:"search_engine_name"`
+	Barcode          string          `json:"barcode"`
+	ImageBase64      string          `json:"imageBase64"`
+	ImageURL         string          `json:"imageURL"`
+	Item             CreateItemInput `json:"item"`
+	Manufacturer     string          `json:"manufacturer"`
+	ModelNumber      string          `json:"modelNumber"`
+	Notes            string          `json:"notes"`
+	SearchEngineName string          `json:"search_engine_name"`
 }
 
 // Input for the create_item tool.
@@ -551,12 +551,12 @@ type UpdateGroupInput struct {
 	Currency string `json:"currency,omitempty"`
 }
 type CreateGroupInvitationInput struct {
-    Email string `json:"email" jsonschema:"required,format:email"`
+	Email string `json:"email" jsonschema:"required,format:email"`
 }
 type GroupInvitation struct {
-    ID      string `json:"id"`
-    Email   string `json:"email"`
-    Expires string `json:"expires,omitempty"`
+	ID      string `json:"id"`
+	Email   string `json:"email"`
+	Expires string `json:"expires,omitempty"`
 }
 type GetGroupStatisticsInput struct{}
 type GetLabelStatisticsInput struct{}
@@ -669,7 +669,6 @@ type GetLocationLabelInput struct {
 type GetLabelOutput struct {
 	Image string `json:"image" jsonschema:"required,description:Base64 encoded image data"`
 }
-
 
 // getItems is the implementation of the "get_items" tool.
 func getItems(ctx context.Context, req *mcp.CallToolRequest, input GetItemsInput) (*mcp.CallToolResult, GetItemsOutput, error) {
@@ -1922,6 +1921,164 @@ func getCurrency(ctx context.Context, req *mcp.CallToolRequest, input GetCurrenc
 	return nil, result, nil
 }
 
+// createItemAttachment is the implementation of the "create_item_attachment" tool.
+func createItemAttachment(ctx context.Context, req *mcp.CallToolRequest, input CreateItemAttachmentInput) (*mcp.CallToolResult, ItemAttachment, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, ItemAttachment{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+
+	fileContent, err := base64.StdEncoding.DecodeString(input.FileContent)
+	if err != nil {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to decode file content: %w", err)
+	}
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile("file", input.FileName)
+	if err != nil {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to create form file: %w", err)
+	}
+	_, err = io.Copy(part, bytes.NewReader(fileContent))
+	if err != nil {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to write file content to form file: %w", err)
+	}
+
+	writer.Close()
+
+	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/items/%s/attachments", homeboxURL, input.ItemID), body)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+	defer resp.Body.Close()
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to create item attachment, status code: %d, body: %s", resp.StatusCode, string(respBody))
+	}
+
+	var output ItemAttachment
+	if err := json.Unmarshal(respBody, &output); err != nil {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	return nil, output, nil
+}
+
+// getItemAttachment is the implementation of the "get_item_attachment" tool.
+func getItemAttachment(ctx context.Context, req *mcp.CallToolRequest, input GetItemAttachmentInput) (*mcp.CallToolResult, GetItemAttachmentOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, GetItemAttachmentOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+
+	httpReq, err := http.NewRequest("GET", fmt.Sprintf("%s/api/v1/items/%s/attachments/%s", homeboxURL, input.ItemID, input.AttachmentID), nil)
+	if err != nil {
+		return nil, GetItemAttachmentOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, GetItemAttachmentOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, GetItemAttachmentOutput{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, GetItemAttachmentOutput{}, fmt.Errorf("failed to get item attachment, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	return nil, GetItemAttachmentOutput{FileContent: base64.StdEncoding.EncodeToString(body)}, nil
+}
+
+// updateItemAttachment is the implementation of the "update_item_attachment" tool.
+func updateItemAttachment(ctx context.Context, req *mcp.CallToolRequest, input UpdateItemAttachmentInput) (*mcp.CallToolResult, ItemAttachment, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, ItemAttachment{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+
+	httpReq, err := http.NewRequest("PUT", fmt.Sprintf("%s/api/v1/items/%s/attachments/%s", homeboxURL, input.ItemID, input.AttachmentID), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, ItemAttachment{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to update item attachment, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	var output ItemAttachment
+	if err := json.Unmarshal(body, &output); err != nil {
+		return nil, ItemAttachment{}, fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+	return nil, output, nil
+}
+
+// deleteItemAttachment is the implementation of the "delete_item_attachment" tool.
+func deleteItemAttachment(ctx context.Context, req *mcp.CallToolRequest, input DeleteItemAttachmentInput) (*mcp.CallToolResult, DeleteItemAttachmentOutput, error) {
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, DeleteItemAttachmentOutput{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN must be set")
+	}
+
+	httpReq, err := http.NewRequest("DELETE", fmt.Sprintf("%s/api/v1/items/%s/attachments/%s", homeboxURL, input.ItemID, input.AttachmentID), nil)
+	if err != nil {
+		return nil, DeleteItemAttachmentOutput{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, DeleteItemAttachmentOutput{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusNoContent {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, DeleteItemAttachmentOutput{}, fmt.Errorf("failed to delete item attachment, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
+	return nil, DeleteItemAttachmentOutput{}, nil
+}
+
 // getGroup is the implementation of the "get_group" tool.
 func getGroup(ctx context.Context, req *mcp.CallToolRequest, input GetGroupInput) (*mcp.CallToolResult, Group, error) {
 	homeboxURL := os.Getenv("HOMEBOX_URL")
@@ -2047,53 +2204,53 @@ func getGroupStatistics(ctx context.Context, req *mcp.CallToolRequest, input Get
 
 // createGroupInvitation is the implementation of the "create_group_invitation" tool.
 func createGroupInvitation(ctx context.Context, req *mcp.CallToolRequest, input CreateGroupInvitationInput) (*mcp.CallToolResult, GroupInvitation, error) {
-    homeboxURL := os.Getenv("HOMEBOX_URL")
-    homeboxToken := os.Getenv("HOMEBOX_TOKEN")
+	homeboxURL := os.Getenv("HOMEBOX_URL")
+	homeboxToken := os.Getenv("HOMEBOX_TOKEN")
 
-    if homeboxURL == "" || homeboxToken == "" {
-        return nil, GroupInvitation{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
-    }
+	if homeboxURL == "" || homeboxToken == "" {
+		return nil, GroupInvitation{}, fmt.Errorf("HOMEBOX_URL and HOMEBOX_TOKEN environment variables must be set")
+	}
 
-    // Marshal the input to JSON
-    reqBody, err := json.Marshal(input)
-    if err != nil {
-        return nil, GroupInvitation{}, err
-    }
+	// Marshal the input to JSON
+	reqBody, err := json.Marshal(input)
+	if err != nil {
+		return nil, GroupInvitation{}, err
+	}
 
-    // Create a new HTTP request to the Homebox API.
-    httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/groups/invitations", homeboxURL), bytes.NewBuffer(reqBody))
-    if err != nil {
-        return nil, GroupInvitation{}, err
-    }
-    httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
-    httpReq.Header.Set("Content-Type", "application/json")
+	// Create a new HTTP request to the Homebox API.
+	httpReq, err := http.NewRequest("POST", fmt.Sprintf("%s/api/v1/groups/invitations", homeboxURL), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, GroupInvitation{}, err
+	}
+	httpReq.Header.Set("Authorization", "Bearer "+homeboxToken)
+	httpReq.Header.Set("Content-Type", "application/json")
 
-    // Execute the request.
-    client := &http.Client{}
-    resp, err := client.Do(httpReq)
-    if err != nil {
-        return nil, GroupInvitation{}, err
-    }
-    defer resp.Body.Close()
+	// Execute the request.
+	client := &http.Client{}
+	resp, err := client.Do(httpReq)
+	if err != nil {
+		return nil, GroupInvitation{}, err
+	}
+	defer resp.Body.Close()
 
-    // Read the response body.
-    body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return nil, GroupInvitation{}, err
-    }
+	// Read the response body.
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, GroupInvitation{}, err
+	}
 
-    if resp.StatusCode != http.StatusCreated {
-        return nil, GroupInvitation{}, fmt.Errorf("failed to create group invitation, status code: %d, body: %s", resp.StatusCode, string(body))
-    }
+	if resp.StatusCode != http.StatusCreated {
+		return nil, GroupInvitation{}, fmt.Errorf("failed to create group invitation, status code: %d, body: %s", resp.StatusCode, string(body))
+	}
 
-    // Unmarshal the JSON response into a GroupInvitation struct.
-    var invitation GroupInvitation
-    if err := json.Unmarshal(body, &invitation); err != nil {
-        return nil, GroupInvitation{}, err
-    }
+	// Unmarshal the JSON response into a GroupInvitation struct.
+	var invitation GroupInvitation
+	if err := json.Unmarshal(body, &invitation); err != nil {
+		return nil, GroupInvitation{}, err
+	}
 
-    // Return the created invitation.
-    return nil, invitation, nil
+	// Return the created invitation.
+	return nil, invitation, nil
 }
 
 // getLabelImage is a helper function to get a label image from the Homebox API.
@@ -2496,6 +2653,22 @@ func main() {
 		Description: "Imports items from a CSV file.",
 	}, importItems)
 	mcp.AddTool(server, &mcp.Tool{
+		Name:        "create_item_attachment",
+		Description: "Creates an attachment for a specific item.",
+	}, createItemAttachment)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_item_attachment",
+		Description: "Retrieves a specific item attachment by ID.",
+	}, getItemAttachment)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "update_item_attachment",
+		Description: "Updates an item attachment.",
+	}, updateItemAttachment)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "delete_item_attachment",
+		Description: "Deletes an item attachment.",
+	}, deleteItemAttachment)
+	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_item_fields",
 		Description: "Gets all custom field names.",
 	}, getItemFields)
@@ -2601,8 +2774,8 @@ func main() {
 		Name:        "get_currency",
 		Description: "Gets currency information.",
 	}, getCurrency)
-	
-    // Group tools
+
+	// Group tools
 	mcp.AddTool(server, &mcp.Tool{
 		Name:        "get_group",
 		Description: "Retrieves the current group information.",
@@ -2616,23 +2789,23 @@ func main() {
 		Description: "Retrieves statistics for the current group.",
 	}, getGroupStatistics)
 	mcp.AddTool(server, &mcp.Tool{
-	    Name:        "create_group_invitation",
-	    Description: "Creates a new group invitation.",
+		Name:        "create_group_invitation",
+		Description: "Creates a new group invitation.",
 	}, createGroupInvitation)
 
-// Label Maker tools
-mcp.AddTool(server, &mcp.Tool{
-	Name:        "get_asset_label",
-	Description: "Generates a label for an asset.",
-}, getAssetLabel)
-mcp.AddTool(server, &mcp.Tool{
-	Name:        "get_item_label",
-	Description: "Generates a label for an item.",
-}, getItemLabel)
-mcp.AddTool(server, &mcp.Tool{
-	Name:        "get_location_label",
-	Description: "Generates a label for a location.",
-}, getLocationLabel)
+	// Label Maker tools
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_asset_label",
+		Description: "Generates a label for an asset.",
+	}, getAssetLabel)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_item_label",
+		Description: "Generates a label for an item.",
+	}, getItemLabel)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        "get_location_label",
+		Description: "Generates a label for a location.",
+	}, getLocationLabel)
 
 	// Users tools
 	mcp.AddTool(server, &mcp.Tool{
@@ -2700,6 +2873,7 @@ mcp.AddTool(server, &mcp.Tool{
 		log.Fatalf("MCP server error: %v", err)
 	}
 }
+
 // getNotifiers is the implementation of the "get_notifiers" tool.
 func getNotifiers(ctx context.Context, req *mcp.CallToolRequest, input GetNotifiersInput) (*mcp.CallToolResult, GetNotifiersOutput, error) {
 	homeboxURL := os.Getenv("HOMEBOX_URL")
@@ -2860,6 +3034,7 @@ func testNotifier(ctx context.Context, req *mcp.CallToolRequest, input TestNotif
 	}
 	return nil, TestNotifierOutput{}, nil
 }
+
 // updateMaintenanceEntry is the implementation of the "update_maintenance_entry" tool.
 func updateMaintenanceEntry(ctx context.Context, req *mcp.CallToolRequest, input UpdateMaintenanceEntryInput) (*mcp.CallToolResult, MaintenanceEntry, error) {
 	homeboxURL := os.Getenv("HOMEBOX_URL")
